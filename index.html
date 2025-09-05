@@ -3,86 +3,19 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>VaultSim 1984 – Diorama Prototype</title>
+  <title>VaultSim • Pixi Floors Demo</title>
   <link rel="stylesheet" href="css/styles.css" />
+  <!-- PixiJS v7 (Canvas/WebGL automatisch) -->
+  <script src="https://unpkg.com/pixi.js@7.4.0/dist/pixi.min.js"></script>
 </head>
 <body>
   <header id="topbar">
-    <div class="kv">
-      <strong>Ressourcen:</strong>
-      <span>Wasser</span><div class="bar"><span id="bar-water"></span></div>
-      <span>Energie</span><div class="bar"><span id="bar-power"></span></div>
-      <span>Nahrung</span><div class="bar"><span id="bar-food"></span></div>
-      <span>Medizin</span><div class="bar"><span id="bar-meds"></span></div>
-    </div>
-    <div class="kv">
-      <strong>MISSTRAUEN</strong>
-      <div class="bar long"><span id="bar-trust"></span></div>
-      <span id="trust-stage">PAUSED</span>
-    </div>
+    <strong>VaultSim • Floor-Tiles Test</strong>
+    <span>64×32 px • Pivot: bottom-center</span>
   </header>
+  <main id="stage"></main>
 
-  <main id="layout">
-    <section id="diorama">
-      <canvas id="iso" aria-label="Isometrische Vault-Ansicht"></canvas>
-      <!-- Orientierung / Pause -->
-      <div id="help">
-        <h2>VaultSim 1984</h2>
-        <p>Simulation ist pausiert.</p>
-        <ul>
-          <li>Links: aufgeschnittener Vault (3 Ebenen, Räume, Bewohner)</li>
-          <li>Rechts: Terminal (Berichte, Entscheidungen, Protokoll)</li>
-          <li>Wichtige Entscheidungen → Autopause</li>
-          <li>Tasten: <kbd>Leertaste</kbd> Pause/Weiter • <kbd>1</kbd>/<kbd>2</kbd>/<kbd>3</kbd> Geschwindigkeit</li>
-        </ul>
-        <div class="row">
-          <button id="btn-start" class="primary">Simulation starten</button>
-          <button id="btn-step">1 Tick</button>
-        </div>
-      </div>
-
-      <!-- Game Over -->
-      <div id="overlay">
-        <div class="box">
-          <h3>REBELLION</h3>
-          <p>Die KI-Fassade ist gefallen. Der Vault gehört den Bewohnern.</p>
-          <button id="btn-restart" class="primary">Neustart</button>
-        </div>
-      </div>
-    </section>
-
-    <aside id="terminal">
-      <section class="panel" id="reports">
-        <h3>Berichte</h3>
-        <div id="report-feed"></div>
-      </section>
-
-      <section class="panel" id="decisions">
-        <h3>Entscheidungen</h3>
-        <div id="decision-box"><p>Keine aktiven Entscheidungen.</p></div>
-      </section>
-
-      <section class="panel" id="log">
-        <h3>Protokoll</h3>
-        <div id="log-feed"></div>
-      </section>
-
-      <section class="panel" id="controls">
-        <h3>Steuerung</h3>
-        <div class="grid">
-          <button id="btn-toggle">▶ Weiter</button>
-          <button data-speed="1">1×</button>
-          <button data-speed="2">2×</button>
-          <button data-speed="4">4×</button>
-        </div>
-      </section>
-    </aside>
-  </main>
-
-  <script src="js/state.js"></script>
-  <script src="js/iso.js"></script>
-  <script src="js/renderer.js"></script>
-  <script src="js/sim.js"></script>
-  <script src="js/ui.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>
