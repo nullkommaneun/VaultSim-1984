@@ -1,326 +1,88 @@
 <!doctype html>
 <html lang="de">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>VaultSim 1984 – Prototype</title>
-<style>
-  :root { --bg:#0b0f12; --hud:#0b1d12; --panel:#06150c; --line:#204030; --txt:#cfecc7; --accent:#1fae6d; }
-  * { box-sizing: border-box; }
-  body { margin:0; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:var(--bg); color:var(--txt); }
-  #topbar { height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 16px; background:var(--hud); border-bottom:1px solid var(--line); position:fixed; top:0; left:0; right:0; z-index:10; }
-  #layout { position:fixed; top:56px; left:0; right:0; bottom:0; display:flex; }
-  #diorama { flex: 1 1 auto; position:relative; overflow:hidden; border-right:1px solid var(--line); }
-  #terminal { width: 32vw; min-width: 320px; max-width: 520px; background:var(--panel); padding:12px; overflow:auto; }
-  .panel { border:1px solid var(--line); padding:10px; margin-bottom:12px; background:#041008; }
-  h3 { margin:0 0 8px 0; font-size:14px; color:#9fe7c0; }
-  .bar { height:8px; background:#0c2418; border:1px solid var(--line); margin:4px 8px 0 0; display:inline-block; width:140px; vertical-align:middle; }
-  .bar > span { display:block; height:100%; background:var(--accent); }
-  .kv { display:flex; gap:14px; align-items:center; }
-  button.option { width:100%; margin:6px 0; background:#0a2; border:none; padding:8px; color:var(--txt); cursor:pointer; }
-  button.option:hover { filter:brightness(1.1); }
-  #log p { margin:4px 0; color:#9bcfb2; }
-  /* Game Over Overlay */
-  #overlay { position:absolute; inset:0; display:none; align-items:center; justify-content:center; backdrop-filter: blur(2px); background: rgba(0,0,0,0.55); }
-  #overlay .box { padding:18px; border:1px solid #a23434; background:#1a0b0b; color:#ffd9d9; }
-  /* CRT Terminal Flair */
-  #terminal { text-shadow: 0 0 1px rgba(31,174,109,0.3); }
-  canvas { display:block; }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>VaultSim 1984 – Diorama Prototype</title>
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-  <div id="topbar">
+  <header id="topbar">
     <div class="kv">
       <strong>Ressourcen:</strong>
-      <span>Wasser</span><div class="bar"><span id="bar-water" style="width:70%"></span></div>
-      <span>Energie</span><div class="bar"><span id="bar-power" style="width:70%"></span></div>
-      <span>Nahrung</span><div class="bar"><span id="bar-food"  style="width:70%"></span></div>
-      <span>Medizin</span><div class="bar"><span id="bar-meds"  style="width:70%"></span></div>
+      <span>Wasser</span><div class="bar"><span id="bar-water"></span></div>
+      <span>Energie</span><div class="bar"><span id="bar-power"></span></div>
+      <span>Nahrung</span><div class="bar"><span id="bar-food"></span></div>
+      <span>Medizin</span><div class="bar"><span id="bar-meds"></span></div>
     </div>
     <div class="kv">
       <strong>MISSTRAUEN</strong>
-      <div class="bar" style="width:220px"><span id="bar-trust" style="width:12%; background:#e7b341"></span></div>
-      <span id="trust-stage">LOW</span>
+      <div class="bar long"><span id="bar-trust"></span></div>
+      <span id="trust-stage">PAUSED</span>
     </div>
-  </div>
+  </header>
 
-  <div id="layout">
-    <div id="diorama">
-      <canvas id="iso" width="1600" height="900" aria-label="Isometrische Ansicht"></canvas>
-      <div id="overlay"><div class="box"><h3>REBELLION</h3><p>Die Fassade der KI ist gefallen. Die Bewohner haben die Kontrolle übernommen.</p></div></div>
-    </div>
+  <main id="layout">
+    <section id="diorama">
+      <canvas id="iso" aria-label="Isometrische Vault-Ansicht"></canvas>
+      <!-- Orientierung / Pause -->
+      <div id="help">
+        <h2>VaultSim 1984</h2>
+        <p>Simulation ist pausiert.</p>
+        <ul>
+          <li>Links: aufgeschnittener Vault (3 Ebenen, Räume, Bewohner)</li>
+          <li>Rechts: Terminal (Berichte, Entscheidungen, Protokoll)</li>
+          <li>Wichtige Entscheidungen → Autopause</li>
+          <li>Tasten: <kbd>Leertaste</kbd> Pause/Weiter • <kbd>1</kbd>/<kbd>2</kbd>/<kbd>3</kbd> Geschwindigkeit</li>
+        </ul>
+        <div class="row">
+          <button id="btn-start" class="primary">Simulation starten</button>
+          <button id="btn-step">1 Tick</button>
+        </div>
+      </div>
+
+      <!-- Game Over -->
+      <div id="overlay">
+        <div class="box">
+          <h3>REBELLION</h3>
+          <p>Die KI-Fassade ist gefallen. Der Vault gehört den Bewohnern.</p>
+          <button id="btn-restart" class="primary">Neustart</button>
+        </div>
+      </div>
+    </section>
+
     <aside id="terminal">
       <section class="panel" id="reports">
         <h3>Berichte</h3>
         <div id="report-feed"></div>
       </section>
+
       <section class="panel" id="decisions">
         <h3>Entscheidungen</h3>
-        <div id="decision-box"></div>
+        <div id="decision-box"><p>Keine aktiven Entscheidungen.</p></div>
       </section>
+
       <section class="panel" id="log">
         <h3>Protokoll</h3>
         <div id="log-feed"></div>
       </section>
+
+      <section class="panel" id="controls">
+        <h3>Steuerung</h3>
+        <div class="grid">
+          <button id="btn-toggle">▶ Weiter</button>
+          <button data-speed="1">1×</button>
+          <button data-speed="2">2×</button>
+          <button data-speed="4">4×</button>
+        </div>
+      </section>
     </aside>
-  </div>
+  </main>
 
-<script>
-/* ---------- Minimaler Spielzustand ---------- */
-const state = {
-  t: 0, day: 1, minute: 0,
-  resources: { water:70, power:72, food:66, meds:55 },
-  trust: { value: 12, stage:'LOW' }, // 0..100 (100 = Game Over)
-  flags: {},
-  log: [],
-  rooms: [], residents: []
-};
-
-/* ---------- Isometrie-Basics (ohne Lib) ---------- */
-const TILE_W = 64, TILE_H = 32;
-function isoToScreen(x,y,z=0){ return { x: (x-y)*(TILE_W/2), y: (x+y)*(TILE_H/2) - z }; }
-
-/* ---------- einfache Welt erzeugen ---------- */
-function initWorld(){
-  // 3 Stockwerke, je 6x4 Räume (Beispiel)
-  for(let floor=0; floor<3; floor++){
-    for(let gx=0; gx<6; gx++){
-      for(let gy=0; gy<4; gy++){
-        state.rooms.push({ id:`F${floor}-${gx}-${gy}`, kind: pick(['housing','canteen','medbay','water','generator','security']),
-          x: gx, y: gy, z: floor*36, broken:false, load: Math.random() });
-      }
-    }
-  }
-  // 20 Bewohner
-  const names = ['Ada','Jon','Mira','Leo','Kai','Ina','Nora','Eli','Tao','Rex','Lia','Oli','Ara','Max','Yun','Noe','Ivo','Una','Sol','Pia'];
-  for(let i=0;i<20;i++){
-    state.residents.push({
-      id:'R'+i, name:names[i%names.length],
-      traits: pickTraits(),
-      mood: 60+randInt(-10,10),
-      hunger: randInt(10,40), thirst: randInt(10,40), fatigue: randInt(10,40),
-      pos: { x: randInt(0,5), y: randInt(0,3), z: randInt(0,2)*36 },
-      behaviour: 'work'
-    });
-  }
-}
-function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-function randInt(a,b){ return Math.floor(a + Math.random()*(b-a+1)); }
-function pickTraits(){
-  const pool = ['diligent','skeptic','leader','fragile'];
-  const t = new Set(); while(t.size<2) t.add(pick(pool)); return [...t];
-}
-
-/* ---------- Rendering ---------- */
-const cv = document.getElementById('iso');
-const ctx = cv.getContext('2d');
-const CAM = { x: 420, y: 140, zoom: 1.0 };
-
-function draw(){
-  ctx.clearRect(0,0,cv.width,cv.height);
-  // Hintergrund
-  ctx.fillStyle = '#0e1116'; ctx.fillRect(0,0,cv.width,cv.height);
-
-  // Räume (als Rauten)
-  for(const room of state.rooms){
-    const base = isoToScreen(room.x, room.y, room.z);
-    const sx = base.x + CAM.x, sy = base.y + CAM.y;
-    // Helligkeit je nach Raumtyp/Ladung
-    const c = roomColor(room);
-    drawTile(sx, sy, c.fill, c.stroke);
-    // Bei hoher Last Licht flackern
-    if (state.resources.power < 45 && Math.random() < 0.02) drawNoise(sx, sy);
-    // Graffiti bei hohem Misstrauen
-    if (state.trust.value >= 60 && Math.random() < 0.005) drawGraffiti(sx, sy);
-  }
-
-  // Bewohner (kleine Punkte mit Status)
-  for(const r of state.residents){
-    const p = isoToScreen(r.pos.x, r.pos.y, r.pos.z);
-    const sx = p.x + CAM.x, sy = p.y + CAM.y - 10;
-    ctx.beginPath();
-    const color = r.behaviour === 'whisper' ? '#e7b341' : '#a8e6c5';
-    ctx.fillStyle = color; ctx.arc(sx, sy, 4, 0, Math.PI*2); ctx.fill();
-    // über Kopf Symbol
-    if (r.behaviour === 'whisper') {
-      ctx.fillStyle = '#e7b341'; ctx.fillRect(sx-2, sy-16, 4, 4);
-    } else if (r.behaviour === 'argue') {
-      ctx.fillStyle = '#e36b6b'; ctx.fillRect(sx-2, sy-16, 4, 4);
-    }
-  }
-
-  // Game Over Overlay
-  if (state.trust.value >= 100) {
-    document.getElementById('overlay').style.display = 'flex';
-  } else {
-    document.getElementById('overlay').style.display = 'none';
-  }
-}
-
-function drawTile(cx, cy, fill='#192522', stroke='#2f5a48'){
-  const hw = TILE_W/2, hh = TILE_H/2;
-  ctx.beginPath();
-  ctx.moveTo(cx, cy);
-  ctx.lineTo(cx+hw, cy+hh);
-  ctx.lineTo(cx, cy+TILE_H);
-  ctx.lineTo(cx-hw, cy+hh);
-  ctx.closePath();
-  ctx.fillStyle = fill; ctx.fill();
-  ctx.strokeStyle = stroke; ctx.stroke();
-}
-function roomColor(room){
-  const base = { fill:'#192522', stroke:'#2f5a48' };
-  switch(room.kind){
-    case 'housing': return base;
-    case 'canteen': return { fill:'#1b2b24', stroke:'#376b55' };
-    case 'medbay':  return { fill:'#1a262c', stroke:'#3e6a7a' };
-    case 'water':   return { fill:'#12242b', stroke:'#2f6a81' };
-    case 'generator': return { fill:'#251d1a', stroke:'#6b3a2f' };
-    case 'security':  return { fill:'#24212b', stroke:'#5a3e8b' };
-  }
-  return base;
-}
-function drawNoise(cx,cy){
-  ctx.fillStyle = 'rgba(255,255,255,0.06)';
-  ctx.fillRect(cx-8, cy+8, 16, 6);
-}
-function drawGraffiti(cx,cy){
-  ctx.fillStyle = 'rgba(215,73,73,0.7)';
-  ctx.fillRect(cx-10, cy+14, 20, 3);
-}
-
-/* ---------- Simulation ---------- */
-function tick(){
-  state.t++;
-  if (state.t % 30 === 0) state.minute += 5;
-
-  // Baseline-Drift (Knappheit treibt Misstrauen)
-  const scarcity = scarcityPenalty(state.resources); // 0..+3
-  const drift = 0.04 + scarcity;
-  state.trust.value = clamp(state.trust.value + drift, 0, 100);
-
-  // Verhalten abhängig von Misstrauen
-  for (const r of state.residents){
-    if (state.trust.value < 40) {
-      r.behaviour = Math.random()<0.9 ? 'work' : 'idle';
-    } else if (state.trust.value < 70) {
-      r.behaviour = Math.random()<0.2 ? 'whisper' : (Math.random()<0.1?'argue':'work');
-    } else {
-      r.behaviour = Math.random()<0.35 ? 'whisper' : 'argue';
-    }
-    // leichte „Wanderung“
-    if (Math.random() < 0.02){
-      r.pos.x = clamp(r.pos.x + randInt(-1,1), 0, 5);
-      r.pos.y = clamp(r.pos.y + randInt(-1,1), 0, 3);
-      r.pos.z = [0,36,72][randInt(0,2)];
-    }
-  }
-
-  // HUD aktualisieren
-  updateHud();
-  // Neue Berichte sporadisch
-  if (Math.random() < 0.02) pushReport();
-}
-function scarcityPenalty(res){
-  let p = 0;
-  if (res.water < 50) p += 0.4;
-  if (res.food  < 50) p += 0.4;
-  if (res.power < 50) p += 0.3;
-  if (res.meds  < 40) p += 0.3;
-  return p;
-}
-function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
-
-/* ---------- HUD/Terminal ---------- */
-function updateHud(){
-  setBar('bar-water', state.resources.water);
-  setBar('bar-power', state.resources.power);
-  setBar('bar-food',  state.resources.food);
-  setBar('bar-meds',  state.resources.meds);
-  setBar('bar-trust', state.trust.value);
-
-  const st = state.trust.value < 30 ? 'LOW' : state.trust.value < 60 ? 'MID' : state.trust.value < 85 ? 'HIGH' : 'CRITICAL';
-  state.trust.stage = st;
-  document.getElementById('trust-stage').textContent = st;
-  // Farbe anpassen
-  const bar = document.getElementById('bar-trust');
-  bar.style.background = (st==='LOW')?'#1fae6d':(st==='MID')?'#e7b341':(st==='HIGH')?'#e77d41':'#d84a4a';
-}
-function setBar(id, val){
-  const el = document.getElementById(id);
-  el.style.width = clamp(val,0,100) + '%';
-}
-
-function logLine(msg){
-  state.log.unshift(msg);
-  const box = document.getElementById('log-feed');
-  box.innerHTML = state.log.slice(0,10).map(x => `<p>${escapeHtml(x)}</p>`).join('');
-}
-function pushReport(){
-  const msgs = [
-    'INFO: Produktionsleistung bei 85%.',
-    'HINWEIS: Engpass in Kantine Sektor B.',
-    'ALERT: Geräuschmeldungen nahe Wasseraufbereitung.',
-    'INFO: Zwei Bewohner verweigerten Schichtwechsel.',
-    'HINWEIS: Flüstern im Wohnblock F1.'
-  ];
-  const r = pick(msgs);
-  const feed = document.getElementById('report-feed');
-  feed.insertAdjacentHTML('afterbegin', `<p>${escapeHtml(r)}</p>`);
-}
-
-/* ---------- Entscheidungen (eine Beispielkarte) ---------- */
-const events = [{
-  id: 'water_leak',
-  text: 'Leck in der Wasserleitung Sektor C. Druckverlust gemeldet.',
-  options: [
-    { id:'redistribute', label:'Umverteilung: 20% aus Sektor A (sofort spürbar)', effect: (s)=>{ s.resources.water -= 6; s.trust.value += 3; logLine('Directive #204 executed: Water Redistribution'); } },
-    { id:'ration', label:'Rationierung 24h (offiziell: Effizienzmaßnahme)', effect: (s)=>{ s.resources.water += 4; s.resources.food -= 2; s.trust.value += 5; logLine('Directive #205 executed: Rationing Policy'); } },
-    { id:'repair', label:'Reparaturteam (langsamer, plausibler)', effect: (s)=>{ s.resources.power -= 2; s.trust.value += 1; logLine('Directive #206 executed: Maintenance Dispatch'); } },
-  ]
-}];
-
-function showDecisionCard(ev){
-  const box = document.getElementById('decision-box');
-  const html = `
-    <p>${escapeHtml(ev.text)}</p>
-    ${ev.options.map(o => `<button class="option" data-opt="${o.id}">${escapeHtml(o.label)}</button>`).join('')}
-  `;
-  box.innerHTML = html;
-  for(const btn of box.querySelectorAll('button.option')){
-    btn.addEventListener('click', () => {
-      const opt = ev.options.find(x => x.id === btn.dataset.opt);
-      opt.effect(state);
-      updateHud();
-      // kleine Wahrheits-/Propaganda-Note in die Berichte
-      const note = (opt.id==='ration') ? 'Durchsage: „Effizienzmaßnahme aktiviert.“' :
-                   (opt.id==='redistribute') ? 'Meldung: Beschwerden aus Sektor A.' :
-                   'Info: Reparaturteam unterwegs.';
-      document.getElementById('report-feed').insertAdjacentHTML('afterbegin', `<p>${escapeHtml(note)}</p>`);
-      // Nach Wahl Karte ausblenden
-      box.innerHTML = '<p>Keine aktiven Entscheidungen.</p>';
-    });
-  }
-}
-
-/* ---------- Util ---------- */
-function escapeHtml(s){ return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
-
-/* ---------- Loop ---------- */
-function loop(){
-  tick();
-  draw();
-  if (state.trust.value >= 100) { /* Stop */ return; }
-  requestAnimationFrame(loop);
-}
-
-/* ---------- Start ---------- */
-initWorld();
-updateHud();
-showDecisionCard(events[0]);
-pushReport(); pushReport();
-logLine('System Online. Awaiting directives.');
-loop();
-</script>
+  <script src="js/state.js"></script>
+  <script src="js/iso.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/sim.js"></script>
+  <script src="js/ui.js"></script>
 </body>
 </html>
